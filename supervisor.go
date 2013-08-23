@@ -3,7 +3,7 @@ package processes
 import (
     "encoding/json"
     "fmt"
-    "github.com/fathomdb/gocode/gommons"
+    "github.com/gommons"
     "io/ioutil"
     "log"
     "os"
