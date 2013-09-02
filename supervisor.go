@@ -263,10 +263,15 @@ func (s *WatchedProcessManager) DeleteProcess(name string) error {
 
 func readConfig(path string) (*WatchedProcessConfig, error) {
     c := &WatchedProcessConfig{}
-    err := gommons.ReadJson(path, c)
+    found, err := gommons.ReadJson(path, c)
     if err != nil {
         return nil, err
     }
+
+    if !found {
+        return nil, nil
+    }
+
     return c, nil
 }
 
@@ -333,6 +338,8 @@ func (s *WatchedProcess) supervise() {
         c, err := readConfig(s.path)
         if err != nil {
             log.Printf("Error reading conf file %v", err)
+        } else if c == nil {
+            log.Printf("Error reading conf file: not found")
         } else {
             conf = c
             lastMod = stat.ModTime()
@@ -392,6 +399,8 @@ func (s *WatchedProcess) supervise() {
                     // Assume this is because the file was just deleted, or corrupted
                     // Treat corrupted as no-config
                     conf = nil
+                } else if c == nil {
+                    log.Printf("Error reading conf file: not found")
                 } else {
                     conf = c
                     lastMod = stat.ModTime()
@@ -477,7 +486,7 @@ func (s *WatchedProcess) WritePidFile(pid int) (err error) {
 }
 
 func (s *WatchedProcess) ReadPidFile() (pid int, err error) {
-    pidFileContents, err := gommons.TryReadFile(s.PidFilePath(), "")
+    pidFileContents, err := gommons.TryReadTextFile(s.PidFilePath(), "")
     if err != nil {
         return 0, err
     }
@@ -503,7 +512,7 @@ func isRunning(pid int) (match bool, err error) {
     match = false
 
     procDir := "/proc/" + strconv.Itoa(pid) + "/"
-    existingCommand, err := gommons.TryReadFile(procDir+"comm", "")
+    existingCommand, err := gommons.TryReadTextFile(procDir+"comm", "")
 
     if err != nil {
         log.Printf("Error reading /proc/<pid>/comm", err)
@@ -521,7 +530,7 @@ func (s *WatchedProcessConfig) isMatchingPid(pid int) (match bool, err error) {
     match = false
 
     procDir := "/proc/" + strconv.Itoa(pid) + "/"
-    existingCommand, err := gommons.TryReadFile(procDir+"comm", "")
+    existingCommand, err := gommons.TryReadTextFile(procDir+"comm", "")
 
     if err != nil {
         log.Printf("Error reading /proc/<pid>/comm", err)
