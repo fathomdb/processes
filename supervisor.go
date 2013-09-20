@@ -263,9 +263,12 @@ func (s *WatchedProcessManager) DeleteProcess(name string) error {
 
 func readConfig(path string) (*WatchedProcessConfig, error) {
     c := &WatchedProcessConfig{}
-    err := gommons.ReadJson(path, c)
+    found, err := gommons.ReadJson(path, c)
     if err != nil {
         return nil, err
+    }
+    if !found {
+        return nil, nil
     }
     return c, nil
 }
