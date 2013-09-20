@@ -336,6 +336,8 @@ func (s *WatchedProcess) supervise() {
         c, err := readConfig(s.path)
         if err != nil {
             log.Printf("Error reading conf file %v", err)
+        } else if c == nil {
+            log.Printf("Error reading conf file: not found")
         } else {
             conf = c
             lastMod = stat.ModTime()
@@ -395,6 +397,8 @@ func (s *WatchedProcess) supervise() {
                     // Assume this is because the file was just deleted, or corrupted
                     // Treat corrupted as no-config
                     conf = nil
+                } else if c == nil {
+                    log.Printf("Error reading conf file: not found")
                 } else {
                     conf = c
                     lastMod = stat.ModTime()
